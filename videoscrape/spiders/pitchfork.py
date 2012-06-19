@@ -6,11 +6,19 @@ Created on Dec 12, 2011
 from scrapy.http import Request
 from scrapy.item import Item, Field
 from scrapy.selector import HtmlXPathSelector
+from lxml import etree
 from selenium import webdriver
 from scrapy.spider import BaseSpider
 from scrapy.utils.misc import arg_to_iter
 from videoscrape.items import VideoItem
-    
+
+'''
+TODO: 
+
+* start at http://pitchfork.com/tv/musicvideos/?q=&t=date
+* fail fast if pages not found
+* handle pitchfork hosted video: http://pitchfork.com/tv/musicvideos/1841-love-is-the-drug-todd-terje-disco-dub/
+'''    
 class PitchforkTVMusicSpider(BaseSpider):
     name = "pitchforktv"
     allowed_domains = ["pitchfork.com"]
@@ -73,7 +81,7 @@ class PitchforkTVMusicSpider(BaseSpider):
     def __init__(self, *args, **kwargs):
         # selenium driver
         self.driver = webdriver.Firefox()
-        
+
 def parse_detail_with_selenium(driver, url):
     driver.get(url)
     
@@ -81,20 +89,53 @@ def parse_detail_with_selenium(driver, url):
     iframes = driver.find_elements_by_xpath('//iframe')
     if iframes:        
         iframe_src_attrs = [iframe.get_attribute('src') for iframe in iframes]
-        # print "Found iframe src = %s" % iframe_src_attrs
+        #print "Found iframe src = %s" % iframe_src_attrs
         for i in iframe_src_attrs:
             if "vimeo" in i:
                 return i
             if "youtube" in i:
                 return i
             
-    # look for embed objects        
-    driver.find_element_by_xpath('//div[@class="embed"]')
-    divembed = driver.find_element_by_xpath('//div[@class="embed"]')
-    embed = divembed.find_element_by_xpath('//embed')
+    # look for embed objects     
+    embed = driver.find_element_by_xpath('//div[@class="embed"]/object/embed')   
     embed_src = embed.get_attribute('src')    
     return embed_src
 
+'''    
+        
+def parse_detail_with_selenium(driver, url):
+    driver.get(url)
+    parse_video_with_xpath(driver.page_source)
+
+
+xpaths = ['//iframe/@src[contains(., "youtube") or contains(., "vimeo")]',
+          '//div[@class = "embed"]/object/embed/@src']
+    
+def parse_video_with_xpath(html):
+    print html
+    parser = etree.HTMLParser()
+    tree = etree.fromstring(html, parser=parser)
+    for xpath in xpaths:
+        vid_src = tree.xpath(xpath)
+        if vid_src:
+            #print vid_src
+            return vid_src[0]
+    
+    return None
+
+            
+    # look for embed objects in <div class="modal dialog archivevideo open">
+    modal_vid = tree.xpath('//div[contains(@class, "dialog")]')
+    print "Found modal video %s" % modal_vid
+    
+    #div_embed = modal_vid.find_element_by_xpath('//div[@class="embed"]')
+    embed = modal_vid.xpath('//div[@class="embed"]')
+    print "Found embed %s" % embed.tag_name
+    embed_src = embed.get_attribute('src')
+    print "Found embed src %s" % embed_src    
+    return embed_src
+'''
+    
 '''
  youtube embed modal video
  http://pitchfork.com/tv/musicvideos/1686-a-forest-bestival-live-2011/ajax/
