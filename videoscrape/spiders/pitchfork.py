@@ -4,12 +4,8 @@ Created on Dec 12, 2011
 @author: paul
 '''
 from scrapy.http import Request
-from scrapy.item import Item, Field
 from scrapy.selector import HtmlXPathSelector
-from lxml import etree
-from selenium import webdriver
 from scrapy.spider import BaseSpider
-from scrapy.utils.misc import arg_to_iter
 from videoscrape.items import VideoItem
 
 '''
@@ -17,13 +13,12 @@ TODO:
 
 * start at http://pitchfork.com/tv/musicvideos/?q=&t=date
 * fail fast if pages not found
-* handle pitchfork hosted video: http://pitchfork.com/tv/musicvideos/1841-love-is-the-drug-todd-terje-disco-dub/
 '''    
 class PitchforkTVMusicSpider(BaseSpider):
     name = "pitchforktv"
     allowed_domains = ["pitchfork.com"]
     start_urls = [
-        "http://pitchfork.com/tv/musicvideos/",
+        "http://pitchfork.com/tv/musicvideos/?q=&t=date",
     ]
 
     def parse(self, response):
@@ -62,10 +57,12 @@ class PitchforkTVMusicSpider(BaseSpider):
             v['image'] =  video.select('.//span[@class="image"]/@data-src').extract()[0]
             
             # parse detail with selenium
-            try:
-                v['embed_url'] = parse_detail_with_selenium(self.driver, v['url'])
-            except Exception:
-                print "Exception processing item %s" % v                
+            #v['embed_url'] = parse_detail_with_selenium(self.driver, v['url'])
+
+#            try:
+#                v['embed_url'] = parse_detail_with_selenium(self.driver, v['url'])
+#            except Exception:
+#                print "Exception processing item %s" % v                
             
             #driver.quit()
             yield v
@@ -79,27 +76,28 @@ class PitchforkTVMusicSpider(BaseSpider):
         #self.driver.quit()
         
     def __init__(self, *args, **kwargs):
+        pass
         # selenium driver
-        self.driver = webdriver.Firefox()
+        #self.driver = webdriver.Firefox()
 
-def parse_detail_with_selenium(driver, url):
-    driver.get(url)
-    
-    # look for iframes first
-    iframes = driver.find_elements_by_xpath('//iframe')
-    if iframes:        
-        iframe_src_attrs = [iframe.get_attribute('src') for iframe in iframes]
-        #print "Found iframe src = %s" % iframe_src_attrs
-        for i in iframe_src_attrs:
-            if "vimeo" in i:
-                return i
-            if "youtube" in i:
-                return i
-            
-    # look for embed objects     
-    embed = driver.find_element_by_xpath('//div[@class="embed"]/object/embed')   
-    embed_src = embed.get_attribute('src')    
-    return embed_src
+#def parse_detail_with_selenium(driver, url):
+#    driver.get(url)
+#    
+#    # look for iframes first
+#    iframes = driver.find_elements_by_xpath('//iframe')
+#    if iframes:        
+#        iframe_src_attrs = [iframe.get_attribute('src') for iframe in iframes]
+#        #print "Found iframe src = %s" % iframe_src_attrs
+#        for i in iframe_src_attrs:
+#            if "vimeo" in i:
+#                return i
+#            if "youtube" in i:
+#                return i
+#            
+#    # look for embed objects     
+#    embed = driver.find_element_by_xpath('//div[@class="embed"]/object/embed')   
+#    embed_src = embed.get_attribute('src')    
+#    return embed_src
 
 '''    
         

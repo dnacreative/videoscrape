@@ -22,7 +22,10 @@ USER_AGENT = 'Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-CN; rv:1.9.2.16) Gecko
 #FEED_URI = "file:////home/paul/Desktop/pitchforktv.json"
 
 
-ITEM_PIPELINES = ['videoscrape.pipelines.MongoDBPipeline',]
+ITEM_PIPELINES = [
+                  'videoscrape.pipelines.SeleniumScraperPipeline',
+                  'videoscrape.pipelines.MongoDBPipeline',
+                  ]
 
 #mongohq
 #mongo staff.mongohq.com:10040/viddeo -u viddeo -p viddeo1
