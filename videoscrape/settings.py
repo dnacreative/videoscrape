@@ -24,7 +24,7 @@ USER_AGENT = 'Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-CN; rv:1.9.2.16) Gecko
 
 ITEM_PIPELINES = [
                   'videoscrape.pipelines.SeleniumScraperPipeline',
-                  'videoscrape.pipelines.MongoDBPipeline',
+                  'videoscrape.pipelines.FlaskPipeline',
                   ]
 
 #mongohq

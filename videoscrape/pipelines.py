@@ -71,27 +71,6 @@ class SeleniumScraperPipeline(object):
         
         return embed_src
 
-
-class MongoDBPipeline(object):
-    def __init__(self):
-        connection = pymongo.Connection("mongodb://video:video1@ds033047.mongolab.com:33047/video")
-        db = connection.video
-        self.collection = db.videos
-        
-    def process_item(self, item, spider):
-        valid = True
-        for data in item:
-            if not data:
-                valid = False
-                #raise DropItem("Missing %s from %s" % (data, item['url']))
-                log.msg("Missing %s from %s" % (data, item['url']))
-        if valid:
-            self.collection.insert(dict(item))
-            log.msg("Item added to MongoDB database %s/%s" % 
-                    (settings['MONGODB_DB'], settings['MONGODB_COLLECTION']),
-                    level=log.DEBUG, spider=spider) 
-        return item
-
 class FlaskPipeline(object):
     def __init__(self):
         app = Flask(__name__)
